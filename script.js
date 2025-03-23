@@ -1,3 +1,6 @@
+
+
+
 const canvas = document.getElementById("lineCanvas");
 const ctx = canvas.getContext("2d");
 const mapContainer = document.querySelector(".map-container");
@@ -26,11 +29,6 @@ let clickMode = null;
 let startPos = null;
 let endPos = null;
 
-// Zoom & Pan Werte
-let scale = 1;
-let pos = { x: 0, y: 0 };
-let isDragging = false;
-let dragStart = { x: 0, y: 0 };
 
 // Initial Setup
 function resizeCanvas() {
@@ -39,11 +37,13 @@ function resizeCanvas() {
 }
 
 // ========== Zoom & Pan ==========
-function updateTransform() {
-  wrapper.style.transform = `translate(${pos.x}px, ${pos.y}px) scale(${scale})`;
-  drawAllLines();
-}
+// Zoom & Pan Werte
+let scale = 1;
+let pos = { x: 0, y: 0 };
+let isDragging = false;
+let dragStart = { x: 0, y: 0 };
 
+// ⬇️ Zoom-Funktion (Mausrad)
 document.querySelector(".map-outer").addEventListener("wheel", (e) => {
   e.preventDefault();
   const zoomSpeed = 0.1;
@@ -53,11 +53,13 @@ document.querySelector(".map-outer").addEventListener("wheel", (e) => {
   updateTransform();
 }, { passive: false });
 
-wrapper.addEventListener("mousedown", (e) => {
+// ⬇️ Start Dragging
+document.querySelector(".map-outer").addEventListener("mousedown", (e) => {
   isDragging = true;
   dragStart = { x: e.clientX - pos.x, y: e.clientY - pos.y };
 });
 
+// ⬇️ Während Drag bewegen
 window.addEventListener("mousemove", (e) => {
   if (!isDragging) return;
   pos.x = e.clientX - dragStart.x;
@@ -65,15 +67,24 @@ window.addEventListener("mousemove", (e) => {
   updateTransform();
 });
 
+// ⬇️ Mouse loslassen = Drag beenden
 window.addEventListener("mouseup", () => {
   isDragging = false;
 });
 
+// ⬇️ Zoom zurücksetzen
 resetZoomBtn.addEventListener("click", () => {
   scale = 1;
   pos = { x: 0, y: 0 };
   updateTransform();
 });
+
+// ⬇️ Transformation auf Wrapper anwenden
+function updateTransform() {
+  wrapper.style.transform = `translate(${pos.x}px, ${pos.y}px) scale(${scale})`;
+  drawAllLines();
+}
+
 
 // ========== Map Wechsel & Filter ==========
 mapSelect.addEventListener("change", () => {
@@ -105,7 +116,8 @@ setStartBtn.addEventListener("click", () => clickMode = "start");
 setEndBtn.addEventListener("click", () => clickMode = "end");
 
 wrapper.addEventListener("click", (e) => {
-  if (!clickMode) return;
+  if (!clickMode) return; if (isDragging) return; // verhindert Klick beim Verschieben
+
 
   const rect = wrapper.getBoundingClientRect();
   const x = (e.clientX - rect.left) / scale;
@@ -114,10 +126,24 @@ wrapper.addEventListener("click", (e) => {
   if (clickMode === "start") {
     startPos = { x, y };
     createPoint(x, y, "start", grenadeType.value);
-  } else if (clickMode === "end") {
+  
+    // 🔁 Automatisch in den nächsten Schritt (Endpunkt setzen) wechseln:
+    clickMode = "end";
+    return;
+  }
+  
+  if (clickMode === "end") {
     endPos = { x, y };
     createPoint(x, y, "end");
+  
+    if (startPos && endPos) {
+      drawAllLines();
+      drawLine(startPos, endPos);
+    }
+  
+    clickMode = null;
   }
+  
 
   if (startPos && endPos) {
     drawAllLines();
@@ -188,9 +214,30 @@ function drawAllLines() {
 }
 
 function createPoint(x, y, type, gtype = "") {
-  const point = document.createElement("div");
-  point.classList.add("lineup-point", type);
-  if (gtype) point.classList.add(gtype);
+    const point = document.createElement("img");
+    point.classList.add("lineup-point", type);
+    
+    if (type === "start") {
+      switch (gtype) {
+        case "he":
+          point.src = "assets/icons/nade.webp";
+          break;
+        case "molotov":
+          point.src = "assets/icons/Molotov.webp";
+          break;
+        case "flash":
+          point.src = "assets/icons/flashbang.png";
+          break;
+        case "smoke":
+          point.src = "assets/icons/smoke.png";
+          break;
+        default:
+          point.src = "";
+      }
+    } else {
+      point.src = "assets/icons/target.png"; // optionales Icon für Endpunkt
+    }
+    
   point.style.left = `${x}px`;
   point.style.top = `${y}px`;
   point.dataset.video = videoInput.value;
@@ -199,17 +246,36 @@ function createPoint(x, y, type, gtype = "") {
   wrapper.appendChild(point);
 }
 
+
+function getGrenadeIcon(type) {
+    switch (type) {
+      case "he":
+        return "assets/icons/nade.webp";
+      case "molotov":
+        return "assets/icons/Molotov.webp";
+      case "flash":
+        return "assets/icons/flashbang.png";
+      case "smoke":
+        return "assets/icons/smoke.png";
+      default:
+        return "assets/icons/unknown.png"; // Optional fallback
+    }
+  }
+  
+
 function renderSavedLineup(lineup, index) {
-    const start = document.createElement("div");
-    start.classList.add("lineup-point", "start", lineup.type);
+    const start = document.createElement("img");
+    start.classList.add("lineup-point", "start");
+    start.src = getGrenadeIcon(lineup.type);
     start.style.left = `${lineup.start.x}px`;
     start.style.top = `${lineup.start.y}px`;
     start.dataset.video = lineup.video;
     start.dataset.image = lineup.image;
     start.dataset.index = index; // ⬅️ neu: index speichern!
   
-    const end = document.createElement("div");
+    const end = document.createElement("img");
     end.classList.add("lineup-point", "end");
+    end.src = "assets/icons/endpoint.webp";
     end.style.left = `${lineup.end.x}px`;
     end.style.top = `${lineup.end.y}px`;
   
@@ -244,7 +310,12 @@ function renderSavedLineup(lineup, index) {
       const index = parseInt(point.dataset.index);
       if (!isNaN(index) && confirm("Lineup wirklich löschen?")) {
         deleteLineup(index);
-        popup.classList.add("hidden");
+        const pointRect = point.getBoundingClientRect();
+    const popupWidth = 350; // oder wie breit dein Popup wirklich ist
+    popup.style.left = `${pointRect.left - popupWidth - 10}px`;
+    popup.style.top = `${pointRect.top}px`;
+    popup.classList.remove("hidden");
+
       }
     });
   
@@ -262,13 +333,14 @@ function renderSavedLineup(lineup, index) {
   });
   
 
-function convertYouTubeUrlToEmbed(url) {
-  const videoIdMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([^\s&]+)/);
-  if (videoIdMatch && videoIdMatch[1]) {
-    return `https://www.youtube.com/embed/${videoIdMatch[1]}`;
+  function convertYouTubeUrlToEmbed(url) {
+    const videoIdMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([^\s&]+)/);
+    if (videoIdMatch && videoIdMatch[1]) {
+      return `https://www.youtube.com/embed/${videoIdMatch[1]}?autoplay=1&mute=1`;
+    }
+    return "";
   }
-  return "";
-}
+  
 
 function getSavedLineups() {
   return JSON.parse(localStorage.getItem("lineups") || "[]");
