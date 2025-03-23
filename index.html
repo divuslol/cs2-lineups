@@ -56,10 +56,13 @@
     <button id="saveLineup">Lineup speichern</button>
   </div>
 
-  <div class="map-container">
-    <img src="assets/maps/Dust2.webp" class="minimap" alt="Dust2 Minimap">
-    <canvas id="lineCanvas"></canvas>
+  <div class="map-outer">
+    <div class="map-container" id="mapInner">
+      <img src="assets/maps/Dust2.webp" class="minimap" alt="Dust2 Minimap">
+      <canvas id="lineCanvas"></canvas>
+    </div>
   </div>
+  
 
   <div id="popup" class="popup hidden">
     <button id="closePopupBtn" class="close-btn">❌</button>

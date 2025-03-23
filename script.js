@@ -273,3 +273,39 @@ window.addEventListener("DOMContentLoaded", () => {
   loadLineupsFromStorage();
   drawAllLines();
 });
+
+const mapInner = document.getElementById("mapInner");
+
+let scale = 1;
+let pos = { x: 0, y: 0 };
+let isDragging = false;
+let dragStart = { x: 0, y: 0 };
+
+function updateTransform() {
+  mapInner.style.transform = `translate(${pos.x}px, ${pos.y}px) scale(${scale})`;
+}
+
+document.querySelector(".map-outer").addEventListener("wheel", (e) => {
+  e.preventDefault();
+  const zoomSpeed = 0.1;
+  const direction = e.deltaY > 0 ? -1 : 1;
+  scale += direction * zoomSpeed;
+  scale = Math.min(Math.max(scale, 0.5), 2.5);
+  updateTransform();
+}, { passive: false });
+
+mapInner.addEventListener("mousedown", (e) => {
+  isDragging = true;
+  dragStart = { x: e.clientX - pos.x, y: e.clientY - pos.y };
+});
+
+window.addEventListener("mousemove", (e) => {
+  if (!isDragging) return;
+  pos.x = e.clientX - dragStart.x;
+  pos.y = e.clientY - dragStart.y;
+  updateTransform();
+});
+
+window.addEventListener("mouseup", () => {
+  isDragging = false;
+});
