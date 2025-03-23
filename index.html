@@ -1,41 +1,48 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>CS2 Lineups – Dust2</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>CS2 Lineups</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <label>Map auswählen:</label>
-  <select id="mapSelect">
-    <option value="Anubis">Anubis</option>
-    <option value="Ancient">Ancient</option>
-    <option value="Mirage">Mirage</option>
-    <option value="Train">Train</option>
-    <option value="Nuke">Nuke</option>
-    <option value="Inferno">Inferno</option>
-    <option value="Dust2">Dust2</option>
-  </select>
-  <br><br>
 
-  <label>Granatentyp filtern:</label>
-<select id="filterType">
-  <option value="all">Alle</option>
-  <option value="he">HE</option>
-  <option value="molotov">Molotov</option>
-  <option value="flash">Flashbang</option>
-  <option value="smoke">Rauchgranate</option>
-</select>
-<br><br>
+  <div class="topbar">
+    <div class="toolbar">
+      <div>
+        <label for="mapSelect">🗺️ Map:</label>
+        <select id="mapSelect">
+          <option value="Dust2">Dust2</option>
+          <option value="Anubis">Anubis</option>
+          <option value="Ancient">Ancient</option>
+          <option value="Mirage">Mirage</option>
+          <option value="Train">Train</option>
+          <option value="Nuke">Nuke</option>
+          <option value="Inferno">Inferno</option>
+        </select>
 
-  
-  <button id="addLineupBtn">Neues Lineup hinzufügen</button>
-    <div id="lineupForm" class="hidden">
+        <label for="filterType">💣 Granate:</label>
+        <select id="filterType">
+          <option value="all">Alle</option>
+          <option value="he">🟥 HE</option>
+          <option value="molotov">🟧 Molotov</option>
+          <option value="flash">🟦 Flash</option>
+          <option value="smoke">⬜ Smoke</option>
+        </select>
+      </div>
+
+      <div>
+        <button id="addLineupBtn">➕ Neues Lineup</button>
+        <button id="resetZoomBtn">🔄 Zoom zurücksetzen</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="lineupForm" class="hidden lineup-panel">
+    <button id="closeFormBtn" class="close-btn">❌</button>
     <h3>Neues Lineup</h3>
     <button id="setStart">Startpunkt setzen</button>
     <button id="setEnd">Endpunkt setzen</button>
-    <br><br>
-
     <label>Granaten-Typ:</label>
     <select id="grenadeType">
       <option value="he">HE</option>
@@ -43,30 +50,23 @@
       <option value="flash">Flashbang</option>
       <option value="smoke">Rauchgranate</option>
     </select>
-    <br><br>
-
     <label>Video URL:</label>
-    <input type="text" id="videoUrlInput" placeholder="z. B. assets/videos/xyz.mp4">
-    <br><br>
-
+    <input type="text" id="videoUrlInput">
     <label>Bild hochladen:</label>
     <input type="file" id="imageUpload" accept="image/*">
-    <br><br>
-
-    <button id="saveLineup">Lineup speichern</button>
+    <button id="saveLineup">💾 Speichern</button>
   </div>
 
   <div class="map-outer">
-    <div class="map-container" id="mapInner">
-      <img src="assets/maps/Dust2.webp" class="minimap" alt="Dust2 Minimap">
+    <div id="transformWrapper">
+      <img src="assets/maps/Dust2.webp" class="minimap" id="mapImage" alt="CS2 Map">
       <canvas id="lineCanvas"></canvas>
     </div>
   </div>
-  
 
   <div id="popup" class="popup hidden">
     <button id="closePopupBtn" class="close-btn">❌</button>
-    <iframe id="youtubeFrame" width="100%" height="200" frameborder="0" allowfullscreen></iframe>
+    <iframe id="youtubeFrame" width="270" height="480" frameborder="0" allowfullscreen></iframe>
     <img src="" alt="Landeposition">
   </div>
 
